@@ -5,19 +5,22 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
-import androidx.core.app.NotificationCompat
 import android.util.Log
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.core.app.NotificationCompat
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.newFixedLengthResponse
 import java.io.File
+import java.io.IOException
 
 
 class PiPupService : Service(), WebServer.Handler {
@@ -163,6 +166,12 @@ class PiPupService : Service(), WebServer.Handler {
             mHandler.postDelayed({
                 removePopup(true)
             }, (popup.duration * 1000).toLong())
+
+            // Play Notification Sound
+            if (popup.notificationSound) {
+                var mediaPlayer = MediaPlayer.create(this, R.raw.highintensity)
+                mediaPlayer.start()
+            }
 
         } catch (ex: Throwable) {
             ex.printStackTrace()
