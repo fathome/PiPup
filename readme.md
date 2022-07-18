@@ -58,6 +58,7 @@ Example json data:
   "messageColor": "#000000",
   "messageSize": 14,
   "backgroundColor": "#ffffff",
+  "notificationSound": true,
   "media": { "image": {
     "uri": "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/cfcc3137009463.5731d08bd66a1.png", "width": 480
   }}
