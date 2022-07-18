@@ -5,14 +5,16 @@ import android.content.Context
 import android.graphics.Color
 import android.net.Uri
 import android.util.Log
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.webkit.WebView
 import android.widget.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.util.VLCVideoLayout
+
 
 // TODO: convert dimensions from px to dp
 
@@ -20,6 +22,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(context) {
 
     open fun create() {
+
+
         inflate(context, R.layout.popup,this)
 
         layoutParams = LayoutParams(
@@ -106,6 +110,7 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
             } catch(e: Throwable) {}
         }
     }
+
 
     private class Image(context: Context, popup: PopupProps, val media: PopupProps.Media.Image): PopupView(context, popup) {
         init { create() }
@@ -196,6 +201,78 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
         }
     }
 
+    private class VLC(context: Context, popup: PopupProps, val media: PopupProps.Media.VLC): PopupView(context, popup) {
+
+        private lateinit var libVlc: LibVLC
+        private lateinit var mediaPlayer: MediaPlayer
+        private lateinit var videoLayout: VLCVideoLayout
+        private lateinit var mSurface: SurfaceView
+        private lateinit var holder: SurfaceHolder
+
+        init { create() }
+
+        override fun create() {
+            super.create()
+
+            val args: ArrayList<String> = ArrayList()
+//            args.add("--rtsp-tcp")
+//            args.add("--vout=android-display")
+//            args.add("-vvv")
+//            args.add("--http-reconnect");
+//            args.add("--no-audio")
+              args.add("--network-caching=800");
+            val frame = findViewById<FrameLayout>(R.id.popup_frame)
+            libVlc = LibVLC(context,args)
+            mediaPlayer = MediaPlayer(libVlc)
+
+            Log.e("VLC","using " + media.width + " x " + media.height)
+
+           // mSurface = SurfaceView(context)
+           //holder = mSurface.holder;
+
+            mSurface = findViewById<SurfaceView>(R.id.surface);
+            holder = mSurface.getHolder();
+            holder.setFixedSize(media.width,  media.height)
+
+            // set display size
+            val lp  = mSurface.layoutParams //  WindowManager.LayoutParams()
+            lp.width = media.width
+            lp.height = media.height
+            mSurface.layoutParams = lp
+            mSurface.invalidate()
+
+            val vout = mediaPlayer.vlcVout
+            vout.setVideoView(mSurface)
+            vout.setWindowSize(media.width,media.height);
+            vout.attachViews()
+
+            //videoLayout = org.videolan.libvlc.util.VLCVideoLayout(context)
+            //mediaPlayer.attachViews(videoLayout, null, false, false)
+
+            //frame.addView(mSurface, lp)
+
+            val media = Media(libVlc, Uri.parse(media.uri))
+            media.setHWDecoderEnabled(true, false)
+            media.addOption(":network-caching=800");
+         //   media.addOption(":clock-jitter=0");
+         //   media.addOption(":clock-synchro=0");
+            mediaPlayer.media = media
+            media.release()
+            mediaPlayer.play()
+            Log.e("VLC","playback started")
+        }
+
+        override fun destroy() {
+            try {
+                mediaPlayer.stop()
+                mediaPlayer.detachViews()
+                mediaPlayer.release()
+                libVlc.release()
+            } catch(e: Throwable) {}
+        }
+    }
+
+
     companion object {
         const val LOG_TAG = "PopupView"
 
@@ -206,6 +283,7 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
                 is PopupProps.Media.Video -> Video(context, popup, popup.media)
                 is PopupProps.Media.Image -> Image(context, popup, popup.media)
                 is PopupProps.Media.Bitmap -> Bitmap(context, popup, popup.media)
+                is PopupProps.Media.VLC -> VLC(context,popup,popup.media)
                 else -> Default(context, popup)
             }
         }

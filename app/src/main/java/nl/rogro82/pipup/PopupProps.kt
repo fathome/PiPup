@@ -21,13 +21,16 @@ data class PopupProps(
     @JsonSubTypes(
         JsonSubTypes.Type(Media.Video::class, name = "video"),
         JsonSubTypes.Type(Media.Image::class, name = "image"),
-        JsonSubTypes.Type(Media.Web::class, name = "web")
+        JsonSubTypes.Type(Media.Web::class, name = "web"),
+        JsonSubTypes.Type(Media.VLC::class, name = "vlc")
+
     )
     sealed class Media {
         data class Video(val uri: String, val width: Int = DEFAULT_MEDIA_WIDTH): Media()
         data class Image(val uri: String, val width: Int = DEFAULT_MEDIA_WIDTH): Media()
         data class Web(val uri: String, val width: Int = 640, val height: Int = 480): Media()
         data class Bitmap(val image: android.graphics.Bitmap, val width: Int = DEFAULT_MEDIA_WIDTH): Media()
+        data class VLC(val uri: String, val width: Int = 640, val height: Int = 480): Media()
     }
 
     enum class Position(index: Int) {
