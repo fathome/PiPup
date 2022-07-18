@@ -69,6 +69,7 @@ All fields are optional and for `media` you can specify 3 types:
 { "image": { "uri": "address_to_your_image", "width": 480 }}
 { "video": { "uri": "address_to_your_video", "width": 480 }}
 { "web":   { "uri": "address_to_your_resource", "width": 640, "height": 480 }}
+{ "vlc":   { "uri": "address_to_your_video", "width": 640, "height": 480 }}
 ```
 
 #### To send notifications with an image file use multipart/form-data
