@@ -63,9 +63,17 @@ Example json data:
   "messageSize": 14,
   "backgroundColor": "#ffffff",
   "notificationSound": true,
-  "media": { "image": {
+  "media": [{ 
+    "image": {
     "uri": "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/cfcc3137009463.5731d08bd66a1.png", "width": 480
-  }}
+     }
+    },
+    {
+      "image": {
+        "uri": "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/cfcc3137009463.5731d08bd66a1.png", "width": 480
+      }
+    }
+  ]
 }
 ```
 All fields are optional and for `media` you can specify 3 types:
