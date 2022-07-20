@@ -10,6 +10,8 @@ import android.webkit.WebView
 import android.widget.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
@@ -231,6 +233,7 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
            //holder = mSurface.holder;
 
             mSurface = findViewById<SurfaceView>(R.id.surface);
+            mSurface.visibility = VISIBLE
             holder = mSurface.getHolder();
             holder.setFixedSize(media.width,  media.height)
 
@@ -268,6 +271,52 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
                 mediaPlayer.detachViews()
                 mediaPlayer.release()
                 libVlc.release()
+                mSurface.visibility = GONE
+            } catch(e: Throwable) {}
+        }
+    }
+
+
+    private class EXO(context: Context, popup: PopupProps, val media: PopupProps.Media.EXO): PopupView(context, popup) {
+
+        private lateinit var exoPlayer: ExoPlayer
+        private lateinit var mSurface: SurfaceView
+        private lateinit var holder: SurfaceHolder
+
+        init { create() }
+
+        override fun create() {
+            super.create()
+
+            exoPlayer = ExoPlayer.Builder(context).build()
+            Log.e("EXO","using " + media.width + " x " + media.height)
+
+            mSurface = findViewById<SurfaceView>(R.id.surface);
+            mSurface.visibility = VISIBLE
+            holder = mSurface.getHolder();
+            holder.setFixedSize(media.width,  media.height)
+
+            // set display size
+            val lp  = mSurface.layoutParams //  WindowManager.LayoutParams()
+            lp.width = media.width
+            lp.height = media.height
+            mSurface.layoutParams = lp
+            mSurface.invalidate()
+
+            exoPlayer.setVideoSurfaceView(mSurface)
+
+            val mediaItem: MediaItem = MediaItem.fromUri(media.uri)
+            exoPlayer.setMediaItem(mediaItem)
+            exoPlayer.prepare()
+            exoPlayer.play()
+            Log.e("EXO","playback started")
+        }
+
+        override fun destroy() {
+            try {
+                exoPlayer.stop()
+                exoPlayer.release()
+                mSurface.visibility = GONE
             } catch(e: Throwable) {}
         }
     }
@@ -276,14 +325,27 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
     companion object {
         const val LOG_TAG = "PopupView"
 
-        fun build(context: Context, popup: PopupProps): PopupView
+        fun build(context: Context, popup: PopupProps,index: Int): PopupView
         {
-            return when (popup.media) {
-                is PopupProps.Media.Web -> Web(context, popup, popup.media)
-                is PopupProps.Media.Video -> Video(context, popup, popup.media)
-                is PopupProps.Media.Image -> Image(context, popup, popup.media)
-                is PopupProps.Media.Bitmap -> Bitmap(context, popup, popup.media)
-                is PopupProps.Media.VLC -> VLC(context,popup,popup.media)
+            return when (popup.media[index]) {
+                is PopupProps.Media.Web -> Web(context, popup,
+                    popup.media[index] as PopupProps.Media.Web
+                )
+                is PopupProps.Media.Video -> Video(context, popup,
+                    popup.media[index] as PopupProps.Media.Video
+                )
+                is PopupProps.Media.Image -> Image(context, popup,
+                    popup.media[index] as PopupProps.Media.Image
+                )
+                is PopupProps.Media.Bitmap -> Bitmap(context, popup,
+                    popup.media[index] as PopupProps.Media.Bitmap
+                )
+                is PopupProps.Media.VLC -> VLC(context,popup,
+                    popup.media[index] as PopupProps.Media.VLC
+                )
+                is PopupProps.Media.EXO -> EXO(context,popup,
+                    popup.media[index] as PopupProps.Media.EXO
+                )
                 else -> Default(context, popup)
             }
         }

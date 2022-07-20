@@ -26,7 +26,7 @@ import java.io.IOException
 class PiPupService : Service(), WebServer.Handler {
     private val mHandler: Handler = Handler()
     private var mOverlay: FrameLayout? = null
-    private var mPopup: PopupView? = null
+    private var mPopup: MutableList<PopupView>? = null
     private lateinit var mWebServer: WebServer
 
     override fun onCreate() {
@@ -88,7 +88,9 @@ class PiPupService : Service(), WebServer.Handler {
         mHandler.removeCallbacksAndMessages(null)
 
         mPopup = mPopup?.let {
-            it.destroy()
+            for ( p in it) {
+                p.destroy()
+            }
             null
         }
 
@@ -140,32 +142,40 @@ class PiPupService : Service(), WebServer.Handler {
                 }
             }.also {
 
+                mPopup = mutableListOf<PopupView>()
                 // inflate the popup layout
+                for (i in popup.media.indices) {
+                    val popupView = PopupView.build(this, popup,i)
+                    mPopup!!.add(popupView)
 
-                mPopup = PopupView.build(this, popup)
+                    it.addView(popupView, FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    ). apply {
 
-                it.addView(mPopup, FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ). apply {
+                        // position the popup
+                        val pos =  popup.position.ordinal + i % 5
 
-                    // position the popup
+                        gravity = when(  PopupProps.Position.getByValue(pos) ) {
+                            PopupProps.Position.TopRight -> Gravity.TOP or Gravity.END
+                            PopupProps.Position.TopLeft -> Gravity.TOP or Gravity.START
+                            PopupProps.Position.BottomRight -> Gravity.BOTTOM or Gravity.END
+                            PopupProps.Position.BottomLeft -> Gravity.BOTTOM or Gravity.START
+                            PopupProps.Position.Center -> Gravity.CENTER
+                            else -> {
+                                Gravity.TOP or Gravity.END
+                            }
+                        }
+                    })
+                }
 
-                    gravity = when(popup.position) {
-                        PopupProps.Position.TopRight -> Gravity.TOP or Gravity.END
-                        PopupProps.Position.TopLeft -> Gravity.TOP or Gravity.START
-                        PopupProps.Position.BottomRight -> Gravity.BOTTOM or Gravity.END
-                        PopupProps.Position.BottomLeft -> Gravity.BOTTOM or Gravity.START
-                        PopupProps.Position.Center -> Gravity.CENTER
-                    }
-                })
-            }
+                // schedule removal
 
-            // schedule removal
+                mHandler.postDelayed({
+                    removePopup(true)
+                }, (popup.duration * 1000).toLong())
 
-            mHandler.postDelayed({
-                removePopup(true)
-            }, (popup.duration * 1000).toLong())
+                }
 
             // Play Notification Sound
             if (popup.notificationSound) {
@@ -252,6 +262,10 @@ class PiPupService : Service(), WebServer.Handler {
                                             else -> null
                                         }
 
+                                        val medialist =  mutableListOf<PopupProps.Media>()
+                                        if (media != null) {
+                                            medialist.add(media)
+                                        }
                                         PopupProps(
                                             duration = duration,
                                             position = position,
@@ -262,7 +276,7 @@ class PiPupService : Service(), WebServer.Handler {
                                             message = message,
                                             messageSize = messageSize,
                                             messageColor = messageColor,
-                                            media = media
+                                            media = medialist
                                         )
                                     }
                                     else -> throw Exception("invalid content-type")

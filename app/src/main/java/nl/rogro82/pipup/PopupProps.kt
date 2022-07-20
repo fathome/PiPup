@@ -13,7 +13,7 @@ data class PopupProps(
     val message: String? = null,
     val messageSize: Float = DEFAULT_MESSAGE_SIZE,
     val messageColor: String = DEFAULT_MESSAGE_COLOR,
-    val media: Media? = null,
+    val media: List<Media>,
     val notificationSound: Boolean = false
 ) {
     @JsonTypeInfo(
@@ -23,7 +23,8 @@ data class PopupProps(
         JsonSubTypes.Type(Media.Video::class, name = "video"),
         JsonSubTypes.Type(Media.Image::class, name = "image"),
         JsonSubTypes.Type(Media.Web::class, name = "web"),
-        JsonSubTypes.Type(Media.VLC::class, name = "vlc")
+        JsonSubTypes.Type(Media.VLC::class, name = "vlc"),
+        JsonSubTypes.Type(Media.EXO::class, name = "exo")
 
     )
     sealed class Media {
@@ -32,6 +33,7 @@ data class PopupProps(
         data class Web(val uri: String, val width: Int = 640, val height: Int = 480): Media()
         data class Bitmap(val image: android.graphics.Bitmap, val width: Int = DEFAULT_MEDIA_WIDTH): Media()
         data class VLC(val uri: String, val width: Int = 640, val height: Int = 480): Media()
+        data class EXO(val uri: String, val width: Int = 640, val height: Int = 480): Media()
     }
 
     enum class Position(index: Int) {
@@ -39,8 +41,15 @@ data class PopupProps(
         TopLeft(1),
         BottomRight(2),
         BottomLeft(3),
-        Center(4)
+        Center(4);
+
+        companion object {
+            fun getByValue(value: Int) = Position.values().firstOrNull() { it.ordinal == value }
+        }
     }
+
+
+
 
     companion object {
         const val DEFAULT_DURATION: Int = 30
