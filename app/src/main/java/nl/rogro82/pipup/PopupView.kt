@@ -215,12 +215,12 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
             super.create()
 
             val args: ArrayList<String> = ArrayList()
-//            args.add("--rtsp-tcp")
-//            args.add("--vout=android-display")
+              args.add("--rtsp-tcp")
+//              args.add("--vout=android-display")
 //            args.add("-vvv")
 //            args.add("--http-reconnect");
 //            args.add("--no-audio")
-              args.add("--network-caching=800");
+              args.add("--network-caching=1000");
             val frame = findViewById<FrameLayout>(R.id.popup_frame)
             libVlc = LibVLC(context,args)
             mediaPlayer = MediaPlayer(libVlc)
@@ -253,9 +253,9 @@ sealed class PopupView(context: Context, val popup: PopupProps) : LinearLayout(c
 
             val media = Media(libVlc, Uri.parse(media.uri))
             media.setHWDecoderEnabled(true, false)
-            media.addOption(":network-caching=800");
-         //   media.addOption(":clock-jitter=0");
-         //   media.addOption(":clock-synchro=0");
+            media.addOption(":network-caching=1000");
+            media.addOption(":clock-jitter=0");
+            media.addOption(":clock-synchro=0");
             mediaPlayer.media = media
             media.release()
             mediaPlayer.play()

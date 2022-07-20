@@ -27,8 +27,12 @@ On Android TV (8.0+), when sideloading, you will need to set the permission for 
 
 To give the application the required permission to draw overlays you will need to run:
 ```
-adb shell appops set nl.rogro82.pipup SYSTEM_ALERT_WINDOW allow
+adb shell appops set de.fathome.pipupex SYSTEM_ALERT_WINDOW allow
 ```
+#### Starting on no AndroidTV Devices
+
+adb shell am start -n de.fathome.pipupex/nl.rogro82.pipup.MainActivity
+
 
 ## Integrating
 
