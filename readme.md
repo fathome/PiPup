@@ -76,7 +76,7 @@ Example json data:
   ]
 }
 ```
-All fields are optional and for `media` you can specify 3 types:
+All fields are optional and for `media` you can specify 4 types:
 
 ```json 
 { "image": { "uri": "address_to_your_image", "width": 480 }}
