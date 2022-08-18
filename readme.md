@@ -29,7 +29,7 @@ To give the application the required permission to draw overlays you will need t
 ```
 adb shell appops set de.fathome.pipupex SYSTEM_ALERT_WINDOW allow
 ```
-#### Starting on no AndroidTV Devices
+#### Starting on non AndroidTV Devices
 
 adb shell am start -n de.fathome.pipupex/nl.rogro82.pipup.MainActivity
 
